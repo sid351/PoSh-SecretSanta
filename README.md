@@ -1,13 +1,18 @@
 # PoSh-SecretSanta
-A PowerShell Script to generate Secret Santa Pairings.
+A PowerShell Script to load 2 functions used to help organise Secret Santa.
 
-Currently achieved through using the messy "Send-SecretSanta" function.
+**Get-SantaPairs** 
 
-Will be replaced by smaller functions dedicated to single actions, such as:
+Takes a list of strings and creates pairs (where one item cannot be paired with itself)
 
-Get-SantaPairs - which takes a list of strings and creates pairs (where one item cannot be paired with itself)
+Best used if the strings are in the "Firstname Lastname <email@address.com>" format, as the email the "Santa" gets looks like this:
 
-Send-SantaList - Sends an email to the "Santa" telling them about thier "Recipient"
+"Your Secret Santa Recipient is $Recipient.
 
-Things to do:
-  1) Add a way to add someone's name next to their email address ...maybe using a CSV instead
+The budget is $Budget.
+
+Please don't reply to this message!" 
+
+**Send-SantaList** 
+
+Sends an email to the "Santa" telling them about thier "Recipient"
