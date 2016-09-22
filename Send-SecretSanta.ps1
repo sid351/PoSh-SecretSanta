@@ -1,7 +1,6 @@
 ﻿[cmdletbinding()]
 Param(
     $csvFile,
-        #Pre-load the CSV input file
     $fromEmailAddress,
         #Pre-load the "From" email address
     $budget,
@@ -48,7 +47,7 @@ Param()
     }
 }
 
-$inputXML = @"
+    $inputXML = @"
 <Window x:Name="Secret_Santa_Sender" x:Class="Secret_Santa_Sender.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -284,11 +283,19 @@ Else
 
 <#
 .DESCRIPTION
-    A GUI tool to generate Secret Santa pairings and email out the results to the individual Santas.
-
+    A Graphical (& command line) tool to generate Secret Santa pairings and email out the results to the individual Santas.
 
 .NOTES
     This multipart blog was incredibly helpful for learning how to craft a GUI for PowerShell scripts:
     Part 1 = https://foxdeploy.com/2015/04/10/part-i-creating-powershell-guis-in-minutes-using-visual-studio-a-new-hope/
     Part 2 = https://foxdeploy.com/2015/04/16/part-ii-deploying-powershell-guis-in-minutes-using-visual-studio/
+
+.PARAMETER csvFile
+    Pre-loads the CSV input file before the GUI loads.
+
+    The CSV must contain a "Name" column and an "Email" column.  It may contain others but they will not be used.
+
+.EXAMPLE Send-SecretSanta -csvFile C:\Names.csv -fromEmailAddress "SecretSanta@consto.com" -budget "£15" -smtpPort 25 -useSSL -smtpServer "smtp.consto.com" -smtpCredential (Get-Credential) -noGui
+
+    This will run without needing to launch the GUI at all.  The email
 #>
