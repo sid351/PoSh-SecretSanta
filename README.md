@@ -17,4 +17,5 @@ It takes in a list of names and email addresses, and then mixes up the whole lis
 	
 3) Completely Commandline
 
-	You can completely by-pass the GUI bits if you've got a CSV file ready to go.  Just make sure all the parameters are set first and use the "noGui" switch.
+	You can completely by-pass the GUI bits if you've got a CSV file ready to go.  
+	Just make sure all the parameters are set first and use the "noGui" switch.
