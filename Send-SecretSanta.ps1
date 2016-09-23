@@ -1,20 +1,62 @@
-﻿[cmdletbinding()]
+﻿<#
+.NAME 
+Send-SecretSanta
+
+.SYNOPSIS
+A tool to generate Secret Santa pairings and email out the results to the individual Santas.
+
+.DESCRIPTION
+This can be run as-is which will launch a Graphical Tool to help you construct a list of "Santas" that will then be shuffled and have pairings picked.
+
+Each "Santa" will then get an email sent to them telling them who they are buying for with a reminder of the Budget.
+    
+As such, you will need access to a SMTP server in order to send the emails out.
+
+Through the GUI it's possible to add and remove people from the list.
+    
+It's possible to import a CSV list, but that CSV must include a "Name" and "Email" column for the import to work.  The Santas imported from the CSV will be added to the same list as those input manually (and can also be removed).
+
+As published, there is no logging of the pairings so everything remains a surprise for as long as the Santa's keep quiet!
+
+There is one small limitation of this approach and it's that it's not possible for a pairing to get paired with each other.
+
+
+.NOTES
+This multipart blog was incredibly helpful for learning how to craft a GUI for PowerShell scripts:
+Part 1 = https://foxdeploy.com/2015/04/10/part-i-creating-powershell-guis-in-minutes-using-visual-studio-a-new-hope/
+Part 2 = https://foxdeploy.com/2015/04/16/part-ii-deploying-powershell-guis-in-minutes-using-visual-studio/
+
+.PARAMETER csvFile
+Pre-loads the CSV input file before the GUI loads.
+
+The CSV must contain a "Name" column and an "Email" column.  It may contain others but they will not be used.
+
+.EXAMPLE Send-SecretSanta -csvFile C:\Names.csv -fromEmailAddress "SecretSanta@consto.com" -budget "£15" -smtpPort 25 -useSSL -smtpServer "smtp.consto.com" -smtpCredential (Get-Credential) -noGui
+
+This will run without needing to launch the GUI at all.  It is not possible to interact with the Santa list in this mode.
+
+.EXAMPLE Send-SecretSanta
+
+Launches the GUI to allow you to build up the Santa list, enter all the email details and send out the pairings.
+#>
+
+[cmdletbinding()]
 Param(
     $csvFile,
     $fromEmailAddress,
-        #Pre-load the "From" email address
+#Pre-load the "From" email address
     $budget,
-        #Pre-load the Budget
+#Pre-load the Budget
     $smtpPort,
-        #Pre-load the SMTP port
+#Pre-load the SMTP port
     [switch]$useSSL,
-        #Pre-load the UseSSL checkbox
+#Pre-load the UseSSL checkbox
     $smtpServer,
-        #Pre-load the SMTP Server address
+#Pre-load the SMTP Server address
     [pscredential]$smtpCredential,
-        #Pre-load the SMTP Username and Password
+#Pre-load the SMTP Username and Password
     [switch]$noGui
-        #Take all the fun out of it and don't bother with the GUI :P.  All other parameters must be provided in order to use this method.
+#Take all the fun out of it and don't bother with the GUI :P.  All other parameters must be provided in order to use this method.
 )
 
 If(
@@ -280,22 +322,3 @@ Else
 #===========================================================================
 # Post submit processing
 #===========================================================================
-
-<#
-.DESCRIPTION
-    A Graphical (& command line) tool to generate Secret Santa pairings and email out the results to the individual Santas.
-
-.NOTES
-    This multipart blog was incredibly helpful for learning how to craft a GUI for PowerShell scripts:
-    Part 1 = https://foxdeploy.com/2015/04/10/part-i-creating-powershell-guis-in-minutes-using-visual-studio-a-new-hope/
-    Part 2 = https://foxdeploy.com/2015/04/16/part-ii-deploying-powershell-guis-in-minutes-using-visual-studio/
-
-.PARAMETER csvFile
-    Pre-loads the CSV input file before the GUI loads.
-
-    The CSV must contain a "Name" column and an "Email" column.  It may contain others but they will not be used.
-
-.EXAMPLE Send-SecretSanta -csvFile C:\Names.csv -fromEmailAddress "SecretSanta@consto.com" -budget "£15" -smtpPort 25 -useSSL -smtpServer "smtp.consto.com" -smtpCredential (Get-Credential) -noGui
-
-    This will run without needing to launch the GUI at all.  The email
-#>
