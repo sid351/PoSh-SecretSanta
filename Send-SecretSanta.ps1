@@ -40,23 +40,49 @@ This will run without needing to launch the GUI at all.  It is not possible to i
 Launches the GUI to allow you to build up the Santa list, enter all the email details and send out the pairings.
 #>
 
-[cmdletbinding()]
+[cmdletbinding(DefaultParameterSetName = 'Gui')]
 Param(
-    $csvFile,
-    $fromEmailAddress,
-#Pre-load the "From" email address
-    $budget,
-#Pre-load the Budget
-    $smtpPort,
-#Pre-load the SMTP port
-    [switch]$useSSL,
-#Pre-load the UseSSL checkbox
-    $smtpServer,
-#Pre-load the SMTP Server address
-    [pscredential]$smtpCredential,
-#Pre-load the SMTP Username and Password
-    [switch]$noGui
-#Take all the fun out of it and don't bother with the GUI :P.  All other parameters must be provided in order to use this method.
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+        [string]$CsvFile,
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+        [string]$FromEmailAddress,
+            #Pre-load the "From" email address
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+        [string]$Budget,
+            #Pre-load the Budget
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+    [ValidateRange(1, 65535)]
+        [int]$SmtpPort,
+            #Pre-load the SMTP port
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $false)]
+        [switch]$UseSSL,
+            #Pre-load the UseSSL checkbox
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+        [string]$SmtpServer,
+            #Pre-load the SMTP Server address
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+        [System.Management.Automation.PSCredential]$SmtpCredential,
+            #Pre-load the SMTP Username and Password
+    
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+        [switch]$NoGui
+            #Take all the fun out of it and don't bother with the GUI :P.  All other parameters must be provided in order to use this method.
 )
 
 If(
