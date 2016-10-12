@@ -20,6 +20,18 @@ As published, there is no logging of the pairings so everything remains a surpri
 
 There is one small limitation of this approach and it's that it's not possible for a pairing to get paired with each other.
 
+For example, the randomised list is: Adam, Bob, Charlie, Donna, Erica & Fran.
+
+The pairings are selected like this:
+
+    Adam <------------------------------------
+       -> Bob                                |
+            -> Charlie                       |
+                     -> Donna                |
+                            -> Erica         |
+                                   -> Fran ---
+
+So it is not possible for Donna to be Erica's Santa AND Erica to be Donna's Santa (unless there are only 2 people in the list, or people swap a recipients).
 
 .NOTES
 This multipart blog was incredibly helpful for learning how to craft a GUI for PowerShell scripts:
@@ -44,36 +56,36 @@ Launches the GUI to allow you to build up the Santa list, enter all the email de
 Param(
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
+    [ValidateScript({<# CsvFile must be a valid CSV file that already exists #> ($_.ToLower().EndsWith(".csv")) -and (Test-Path -Path $_ -PathType Leaf -IsValid)})] 
         [string]$CsvFile,
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-        [string]$FromEmailAddress,
-            #Pre-load the "From" email address
+    [ValidateScript({<# FromEmailAddress must be a valid email address, but does not need to be a live mailbox #> ($_ -as [System.Net.Mail.MailAddress])})]
+        [string]$FromEmailAddress = "Secret Santa <noreply@domain.com>",
+            #Pre-load the "From" email address.  It must be in the form of a valid email address, but does not have to be a live mailbox depending on your SMTP Relay settings.
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-        [string]$Budget,
+        [string]$Budget = "£10",
             #Pre-load the Budget
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
+        [string]$SmtpServer,
+            #Pre-load the SMTP Server address
+    
+    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
     [ValidateRange(1, 65535)]
-        [int]$SmtpPort,
+        [int]$SmtpPort = 25,
             #Pre-load the SMTP port
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $false)]
         [switch]$UseSSL,
             #Pre-load the UseSSL checkbox
-    
-    [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
-    [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
-        [string]$SmtpServer,
-            #Pre-load the SMTP Server address
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
@@ -84,17 +96,6 @@ Param(
         [switch]$NoGui
             #Take all the fun out of it and don't bother with the GUI :P.  All other parameters must be provided in order to use this method.
 )
-
-If(
-    ($noGui -eq $true) -and
-    (($csvFile -eq "") -or ($csvFile -eq $null)) -and
-    (($fromEmailAddress -eq "") -or ($fromEmailAddress -eq $null)) -and
-    (($smtpServer -eq "") -or ($smtpServer -eq $null)) -and
-    (($smtpCredential -eq "") -or ($smtpCredential -eq $null))
-    )
-{
-    Write-Error -Message "When using NoGUI all parameters must be provided with values."
-}
 
 Function Get-FormVariables
 {
@@ -115,7 +116,7 @@ Param()
     }
 }
 
-    $inputXML = @"
+$inputXML = @"
 <Window x:Name="Secret_Santa_Sender" x:Class="Secret_Santa_Sender.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -147,11 +148,11 @@ Param()
         <Label x:Name="lblUsername" Content="Smtp Username:" HorizontalAlignment="Left" Margin="11,513,0,0" VerticalAlignment="Top"/>
         <Label x:Name="lblPassword" Content="Smtp Password:" HorizontalAlignment="Left" Margin="11,541,0,0" VerticalAlignment="Top"/>
         <Label x:Name="lblPort" Content="Smtp Port:" HorizontalAlignment="Left" Margin="148,456,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="txtInFrom" HorizontalAlignment="Left" Height="26" Margin="148,426,0,0" TextWrapping="Wrap" Text="Secret Santa &lt;noreply@domain.com&gt;" VerticalAlignment="Top" Width="235" VerticalContentAlignment="Center"/>
-        <TextBox x:Name="txtInBudget" HorizontalAlignment="Left" Height="26" Margin="67,456,0,0" TextWrapping="Wrap" Text="£10" VerticalAlignment="Top" Width="74" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="txtInFrom" HorizontalAlignment="Left" Height="26" Margin="148,426,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="235" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="txtInBudget" HorizontalAlignment="Left" Height="26" Margin="67,456,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="74" VerticalContentAlignment="Center"/>
         <TextBox x:Name="txtInSmtpServer" HorizontalAlignment="Left" Height="26" Margin="148,485,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="235" VerticalContentAlignment="Center"/>
         <TextBox x:Name="txtInSmtpUsername" HorizontalAlignment="Left" Height="26" Margin="148,513,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="235" VerticalContentAlignment="Center"/>
-        <TextBox x:Name="txtInSmtpPort" HorizontalAlignment="Left" Height="26" Margin="218,456,0,0" TextWrapping="Wrap" Text="25" VerticalAlignment="Top" Width="99" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="txtInSmtpPort" HorizontalAlignment="Left" Height="26" Margin="218,456,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="99" VerticalContentAlignment="Center"/>
         <CheckBox x:Name="boxUseSSL" Content="Use SSL" HorizontalAlignment="Left" Margin="322,456,0,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
         <PasswordBox x:Name="passInSmtpPassword" HorizontalAlignment="Left" Margin="148,541,0,0" VerticalAlignment="Top" Width="235" Height="26" VerticalContentAlignment="Center"/>
         <Button x:Name="btnSendNow" Content="Send Now!" HorizontalAlignment="Left" Margin="11,572,0,0" VerticalAlignment="Top" Width="372" RenderTransformOrigin="0.5,0.5" Height="34">
@@ -234,10 +235,7 @@ $WPFbtnImportCsv.Add_Click({
 
 $WPFbtnAddToList.Add_Click({
 
-    If($WPFtxtInName.Text -ne $null -and
-        $WPFtxtInName.Text -ne "" -and
-        $WPFtxtInEmail.Text -ne $null -and
-        $WPFtxtInEmail.Text -ne "")
+    If(-not ([string]::IsNullOrEmpty($WPFtxtInName.Text) -and [string]::IsNullOrEmpty($WPFtxtInEmail.Text)))
     {
         $obj = New-Object -TypeName PSCustomObject -Property @{
             Name = $WPFtxtInName.Text
@@ -295,10 +293,7 @@ $WPFbtnSendNow.Add_Click({
             UseSSL = $WPFboxUseSSL.IsChecked
             }
 
-        If($WPFtxtInSmtpUsername.Text -ne $null -and 
-            $WPFtxtInSmtpUsername.Text -ne "" -and
-            $WPFpassInSmtpPassword.Password -ne $null -and
-            $WPFpassInSmtpPassword.Password -ne "")
+        If(-not ([string]::IsNullOrEmpty($WPFtxtInSmtpUsername.Text) -and [string]::IsNullOrEmpty($WPFpassInSmtpPassword.Password)))
         {
             $paramEmail.Credential = (New-Object System.Management.Automation.PSCredential ($WPFtxtInSmtpUsername.Text, $(ConvertTo-SecureString -String $WPFpassInSmtpPassword.Password -AsPlainText -Force)))
         }
@@ -312,24 +307,24 @@ $WPFbtnSendNow.Add_Click({
 })
 
 #Pre-populate if Params have been defined
+If(-not [string]::IsNullOrEmpty($csvFile))
+{ 
+    $WPFtxtCsvPath.Text = $csvFile 
+    $WPFbtnImportCsv.RaiseEvent([System.Windows.RoutedEventArgs]::New([System.Windows.Controls.Button]::ClickEvent))
+}
 
-If($budget -ne "" -and $budget -ne $null){ $WPFtxtInBudget.Text = $budget }
+If(-not [string]::IsNullOrEmpty($budget)){ $WPFtxtInBudget.Text = $budget }
 
-If($fromEmailAddress -ne "" -and $fromEmailAddress -ne $null){ $WPFtxtInFrom.Text = $fromEmailAddress }
+If(-not [string]::IsNullOrEmpty($fromEmailAddress)){ $WPFtxtInFrom.Text = $fromEmailAddress }
 
-If($smtpServer -ne "" -and $smtpServer -ne $null){ $WPFtxtInSmtpServer.Text = $smtpServer }
-If($smtpPort -ne "" -and $smtpPort -ne $null){ $WPFtxtInSmtpPort.Text = $smtpPort }
-If($smtpCredential -ne "" -and $smtpCredential -ne $null)
+If(-not [string]::IsNullOrEmpty($smtpServer)){ $WPFtxtInSmtpServer.Text = $smtpServer }
+If(-not [string]::IsNullOrEmpty($smtpPort)){ $WPFtxtInSmtpPort.Text = $smtpPort }
+If(-not [string]::IsNullOrEmpty($smtpCredential))
 { 
     $WPFtxtInSmtpUsername.Text = $smtpCredential.UserName
     $WPFpassInSmtpPassword.Password = $smtpCredential.GetNetworkCredential().Password
 }
 $WPFboxUseSSL.IsChecked = $useSSL
-If($csvFile -ne "" -and $csvFile -ne $null)
-{ 
-    $WPFtxtCsvPath.Text = $csvFile 
-    $WPFbtnImportCsv.RaiseEvent([System.Windows.RoutedEventArgs]::New([System.Windows.Controls.Button]::ClickEvent))
-}
 
 #===========================================================================
 # Shows the form
