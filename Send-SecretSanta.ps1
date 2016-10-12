@@ -1,7 +1,4 @@
 ﻿<#
-.NAME 
-Send-SecretSanta
-
 .SYNOPSIS
 A tool to generate Secret Santa pairings and email out the results to the individual Santas.
 
@@ -38,18 +35,16 @@ This multipart blog was incredibly helpful for learning how to craft a GUI for P
 Part 1 = https://foxdeploy.com/2015/04/10/part-i-creating-powershell-guis-in-minutes-using-visual-studio-a-new-hope/
 Part 2 = https://foxdeploy.com/2015/04/16/part-ii-deploying-powershell-guis-in-minutes-using-visual-studio/
 
-.PARAMETER csvFile
-Pre-loads the CSV input file before the GUI loads.
-
-The CSV must contain a "Name" column and an "Email" column.  It may contain others but they will not be used.
-
-.EXAMPLE Send-SecretSanta -csvFile C:\Names.csv -fromEmailAddress "SecretSanta@consto.com" -budget "£15" -smtpPort 25 -useSSL -smtpServer "smtp.consto.com" -smtpCredential (Get-Credential) -noGui
+.EXAMPLE 
+Send-SecretSanta -csvFile C:\Names.csv -fromEmailAddress "SecretSanta@consto.com" -budget "£15" -smtpPort 25 -useSSL -smtpServer "smtp.consto.com" -smtpCredential (Get-Credential) -noGui
 
 This will run without needing to launch the GUI at all.  It is not possible to interact with the Santa list in this mode.
 
-.EXAMPLE Send-SecretSanta
+.EXAMPLE 
+Send-SecretSanta
 
 Launches the GUI to allow you to build up the Santa list, enter all the email details and send out the pairings.
+
 #>
 
 [cmdletbinding(DefaultParameterSetName = 'Gui')]
@@ -58,6 +53,7 @@ Param(
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
     [ValidateScript({<# CsvFile must be a valid CSV file that already exists #> ($_.ToLower().EndsWith(".csv")) -and (Test-Path -Path $_ -PathType Leaf -IsValid)})] 
         [string]$CsvFile,
+            #Pre-loads the CSV input file before the GUI loads.  The CSV must contain a "Name" column and an "Email" column.  It may contain others but they will not be used.
     
     [Parameter(ParameterSetName = 'Gui', Mandatory = $false)]
     [Parameter(ParameterSetName = 'NoGui', Mandatory = $true)]
